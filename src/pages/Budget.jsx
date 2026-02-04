@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../App';
-import { Target, Plus, TrendingUp, AlertTriangle, X, Trash2, Bell } from 'lucide-react';
+import { Target, Plus, AlertTriangle, X, Trash2, Bell } from 'lucide-react';
 import API from '../services/api';
 
 export default function Budget() {
