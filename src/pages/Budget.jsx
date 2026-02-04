@@ -18,53 +18,6 @@ export default function Budget() {
 
   const CATEGORIES = ['food', 'fuel', 'movie', 'medical', 'loan', 'shopping', 'travel', 'utilities', 'other'];
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const transactionsResponse = await API.get('/api/transactions');
-      setTransactions(transactionsResponse.data);
-      
-      // Create sample budgets based on existing transaction categories
-      const sampleBudgets = [
-        { _id: '1', category: 'food', amount: 15000, period: 'monthly' },
-        { _id: '2', category: 'fuel', amount: 8000, period: 'monthly' },
-        { _id: '3', category: 'shopping', amount: 12000, period: 'monthly' },
-        { _id: '4', category: 'medical', amount: 5000, period: 'monthly' },
-        { _id: '5', category: 'utilities', amount: 3000, period: 'monthly' }
-      ];
-      setBudgets(sampleBudgets);
-      
-      // Generate alerts for over-budget categories
-      const budgetAlerts = sampleBudgets
-        .map(budget => {
-          const spent = calculateSpent(budget.category, budget.period, transactionsResponse.data);
-          const percentage = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
-          if (percentage >= 90) {
-            return {
-              id: budget._id,
-              category: budget.category,
-              message: percentage >= 100 
-                ? `You've exceeded your ${budget.category} budget by ₹${(spent - budget.amount).toLocaleString()}`
-                : `You're at ${percentage.toFixed(0)}% of your ${budget.category} budget`
-            };
-          }
-          return null;
-        })
-        .filter(Boolean);
-      setAlerts(budgetAlerts);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setTransactions([]);
-      setBudgets([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [calculateSpent]);
-
-  useEffect(() => {
-    fetchData();
-  }, [refreshTrigger, fetchData]);
-
   const calculateSpent = useCallback((category, period, transactionData = transactions) => {
     const now = new Date();
     let startDate = new Date();
@@ -86,6 +39,30 @@ export default function Budget() {
       .reduce((sum, t) => sum + t.amount, 0);
   }, [transactions]);
 
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const transactionsResponse = await API.get('/api/transactions');
+      setTransactions(transactionsResponse.data);
+      
+      const budgetsResponse = await API.get('/api/budgets');
+      setBudgets(budgetsResponse.data);
+      
+      setAlerts([]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setTransactions([]);
+      setBudgets([]);
+      setAlerts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [refreshTrigger, fetchData]);
+
   const getBudgetStatus = useCallback((budget) => {
     const spent = calculateSpent(budget.category, budget.period);
     const percentage = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
@@ -98,30 +75,37 @@ export default function Budget() {
   const handleAddBudget = async (e) => {
     e.preventDefault();
     
-    // Confirmation popup
     const confirmMessage = `Are you sure you want to add this budget?\n\nCategory: ${newBudget.category}\nAmount: ₹${newBudget.amount}\nPeriod: ${newBudget.period}`;
     if (!window.confirm(confirmMessage)) {
       return;
     }
     
-    const budgetData = {
-      _id: Date.now().toString(),
-      category: newBudget.category,
-      amount: parseFloat(newBudget.amount),
-      period: newBudget.period
-    };
-    
-    setBudgets(prev => [...prev, budgetData]);
-    setNewBudget({ category: '', amount: '', period: 'monthly' });
-    setIsAddBudgetModalOpen(false);
-    fetchData(); // Refresh alerts
+    try {
+      await API.post('/api/budgets', {
+        category: newBudget.category,
+        amount: parseFloat(newBudget.amount),
+        period: newBudget.period
+      });
+      
+      setNewBudget({ category: '', amount: '', period: 'monthly' });
+      setIsAddBudgetModalOpen(false);
+      fetchData();
+    } catch (error) {
+      console.error('Error adding budget:', error);
+      alert('Failed to add budget. Please try again.');
+    }
   };
 
-  const handleDeleteBudget = (budgetId, budgetCategory) => {
+  const handleDeleteBudget = async (budgetId, budgetCategory) => {
     const confirmMessage = `Are you sure you want to delete the budget for "${budgetCategory}"?\n\nThis action cannot be undone.`;
     if (window.confirm(confirmMessage)) {
-      setBudgets(prev => prev.filter(b => b._id !== budgetId));
-      setAlerts(prev => prev.filter(a => a.id !== budgetId));
+      try {
+        await API.delete(`/api/budgets/${budgetId}`);
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting budget:', error);
+        alert('Failed to delete budget. Please try again.');
+      }
     }
   };
 
@@ -142,7 +126,6 @@ export default function Budget() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 space-y-6">
-      {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 text-white rounded-2xl shadow-xl p-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
           <div>
@@ -162,7 +145,6 @@ export default function Budget() {
         </div>
       </div>
 
-      {/* Budget Alerts */}
       {alerts.length > 0 && (
         <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-2xl p-6 shadow-lg">
           <div className="flex items-center mb-4">
@@ -188,7 +170,6 @@ export default function Budget() {
         </div>
       )}
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white/20">
           <h3 className="text-gray-500 text-sm font-medium uppercase tracking-wide">Total Budget</h3>
@@ -212,7 +193,6 @@ export default function Budget() {
         </div>
       </div>
 
-      {/* Budget List */}
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20">
         <div className="p-8 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800">Budget Categories</h2>
@@ -283,40 +263,9 @@ export default function Budget() {
               <div className="text-sm text-gray-400">Create your first budget to start tracking</div>
             </div>
           )}
-          
-          {/* Budget Recommendations */}
-          {budgets.length > 0 && (
-            <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
-              <h3 className="text-lg font-bold text-blue-800 mb-4 flex items-center">
-                <TrendingUp className="h-5 w-5 mr-2" />
-                Smart Recommendations
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
-                  <h4 className="font-semibold text-gray-800 mb-2">Top Spending Category</h4>
-                  <p className="text-sm text-gray-600">
-                    {budgets.reduce((max, budget) => {
-                      const spent = calculateSpent(budget.category, budget.period);
-                      return spent > calculateSpent(max.category, max.period) ? budget : max;
-                    }).category} - Consider reducing expenses here
-                  </p>
-                </div>
-                <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
-                  <h4 className="font-semibold text-gray-800 mb-2">Budget Health</h4>
-                  <p className="text-sm text-gray-600">
-                    {budgets.filter(b => {
-                      const spent = calculateSpent(b.category, b.period);
-                      return (spent / b.amount) * 100 < 80;
-                    }).length} of {budgets.length} budgets are on track
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Add Budget Modal */}
       {isAddBudgetModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg w-full max-w-md mx-4">
