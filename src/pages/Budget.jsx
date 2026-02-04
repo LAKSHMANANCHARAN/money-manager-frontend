@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../App';
-import { Target, Plus, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Trash2, Bell } from 'lucide-react';
+import { Target, Plus, TrendingUp, AlertTriangle, CheckCircle, X, Trash2, Bell } from 'lucide-react';
 import API from '../services/api';
 
 export default function Budget() {
@@ -20,9 +20,9 @@ export default function Budget() {
 
   useEffect(() => {
     fetchData();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const transactionsResponse = await API.get('/api/transactions');
@@ -63,7 +63,7 @@ export default function Budget() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const calculateSpent = (category, period, transactionData = transactions) => {
     const now = new Date();

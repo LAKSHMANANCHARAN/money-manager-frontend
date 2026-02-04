@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState, useCallback } from "react";
 import { useAppContext } from '../App';
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, Calendar, Activity, Target, Clock } from 'lucide-react';
+
 import API from '../services/api';
-import SummaryCard from '../components/SummaryCard';
 import TransactionList from '../components/TransactionList';
 import CategoryPieChart from '../components/CategoryPieChart';
 
@@ -16,9 +16,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
-  }, [range, refreshTrigger]);
+  }, [range, refreshTrigger, fetchDashboardData]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       const summaryResponse = await API.get(`/api/transactions/summary?range=${range}`);
@@ -42,7 +42,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [range]);
 
   const getRangeLabel = () => {
     switch(range) {

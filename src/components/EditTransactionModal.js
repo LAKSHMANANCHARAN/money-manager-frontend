@@ -73,26 +73,6 @@ export default function EditTransactionModal({ isOpen, onClose, transaction, onS
     }
   };
 
-  const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this transaction?')) {
-      setLoading(true);
-      try {
-        await API.delete(`/api/transactions/${transaction._id}`);
-        onSuccess();
-        onClose();
-      } catch (error) {
-        console.error('Error deleting transaction:', error);
-        if (error.response?.status === 403) {
-          alert('Cannot delete transaction after 12 hours.');
-        } else {
-          alert('Failed to delete transaction. Please try again.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
   if (!isOpen || !transaction) return null;
 
   const hoursLeft = canEdit ? Math.max(0, 12 - Math.floor((new Date() - new Date(transaction.createdAt)) / (1000 * 60 * 60))) : 0;

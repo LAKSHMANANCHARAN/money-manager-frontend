@@ -91,7 +91,6 @@ export default function TransferModal({ isOpen, onClose, onTransferCompleted }) 
   if (!isOpen) return null;
 
   const fromAccountData = accounts.find(acc => acc.name === formData.fromAccount);
-  const toAccountData = accounts.find(acc => acc.name === formData.toAccount);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

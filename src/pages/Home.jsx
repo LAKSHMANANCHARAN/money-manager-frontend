@@ -29,7 +29,7 @@ export default function Home() {
 
   useEffect(() => {
     applyFilters();
-  }, [transactions, filters, accounts]);
+  }, [applyFilters]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -56,7 +56,7 @@ export default function Home() {
     }
   };
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...transactions];
 
     // Type filter
@@ -104,7 +104,7 @@ export default function Home() {
 
     setFilteredTransactions(filtered);
     calculateSummary(filtered);
-  };
+  }, [transactions, filters, accounts]);
 
   const calculateSummary = (data) => {
     const transactionIncome = data
@@ -114,9 +114,6 @@ export default function Home() {
     const transactionExpense = data
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
-
-    // Total account balance (available money)
-    const totalAccountBalance = accounts.reduce((sum, account) => sum + (account.balance || 0), 0);
 
     setSummary({
       income: transactionIncome, // Show actual income transactions
