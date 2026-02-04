@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAppContext } from '../App';
-import { BarChart3, TrendingUp, TrendingDown, DollarSign, Calendar, Activity, Target, Clock } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, DollarSign, Calendar, Activity, Target, Clock, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import API from '../services/api';
 import TransactionList from '../components/TransactionList';
@@ -8,6 +9,7 @@ import CategoryPieChart from '../components/CategoryPieChart';
 
 export default function Dashboard() {
   const { refreshTrigger } = useAppContext();
+  const navigate = useNavigate();
   const [range, setRange] = useState('monthly');
   const [summary, setSummary] = useState({ income: 0, expense: 0 });
   const [transactions, setTransactions] = useState([]);
@@ -82,7 +84,7 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
             <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-2xl p-3">
               <Calendar className="h-5 w-5" />
               <select
@@ -96,6 +98,14 @@ export default function Dashboard() {
                 <option value="yearly" className="text-gray-800">Yearly</option>
               </select>
             </div>
+            
+            <button
+              onClick={() => navigate('/budget')}
+              className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm text-white px-4 py-3 rounded-2xl hover:bg-white/30 transition-all duration-200 shadow-lg"
+            >
+              <Plus className="h-5 w-5" />
+              <span className="font-medium">Add Budget</span>
+            </button>
           </div>
         </div>
       </div>

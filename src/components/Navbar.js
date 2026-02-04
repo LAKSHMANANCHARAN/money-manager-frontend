@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, Home, BarChart3, Wallet, ArrowRightLeft, PieChart } from 'lucide-react';
+import { Plus, Home, BarChart3, Wallet, ArrowRightLeft, PieChart, Menu, X } from 'lucide-react';
 
 export default function Navbar({ onAddTransaction, onTransferMoney }) {
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
 
@@ -95,8 +96,86 @@ export default function Navbar({ onAddTransaction, onTransferMoney }) {
             >
               <Plus className="h-5 w-5" />
             </button>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-gray-600 hover:text-blue-600 p-2"
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-200 py-4">
+            <div className="flex flex-col space-y-2">
+              <Link
+                to="/"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center space-x-3 px-4 py-3 transition-colors ${
+                  isActive('/') 
+                    ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600' 
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                }`}
+              >
+                <Home className="h-5 w-5" />
+                <span className="font-medium">Home</span>
+              </Link>
+
+              <Link
+                to="/dashboard"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center space-x-3 px-4 py-3 transition-colors ${
+                  isActive('/dashboard') 
+                    ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600' 
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                }`}
+              >
+                <BarChart3 className="h-5 w-5" />
+                <span className="font-medium">Dashboard</span>
+              </Link>
+
+              <Link
+                to="/accounts"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center space-x-3 px-4 py-3 transition-colors ${
+                  isActive('/accounts') 
+                    ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600' 
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                }`}
+              >
+                <Wallet className="h-5 w-5" />
+                <span className="font-medium">Accounts</span>
+              </Link>
+
+              <Link
+                to="/budget"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center space-x-3 px-4 py-3 transition-colors ${
+                  isActive('/budget') 
+                    ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600' 
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                }`}
+              >
+                <PieChart className="h-5 w-5" />
+                <span className="font-medium">Budget</span>
+              </Link>
+
+              <div className="px-4 py-2">
+                <button
+                  onClick={() => {
+                    onTransferMoney();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <ArrowRightLeft className="h-5 w-5" />
+                  <span className="font-medium">Transfer Money</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
