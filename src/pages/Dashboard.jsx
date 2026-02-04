@@ -14,10 +14,6 @@ export default function Dashboard() {
   const [categorySummary, setCategorySummary] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [range, refreshTrigger, fetchDashboardData]);
-
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
@@ -43,6 +39,10 @@ export default function Dashboard() {
       setLoading(false);
     }
   }, [range]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [refreshTrigger, fetchDashboardData]);
 
   const getRangeLabel = () => {
     switch(range) {

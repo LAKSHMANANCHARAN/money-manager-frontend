@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../App';
-import { Target, Plus, TrendingUp, AlertTriangle, CheckCircle, X, Trash2, Bell } from 'lucide-react';
+import { Target, Plus, TrendingUp, AlertTriangle, X, Trash2, Bell } from 'lucide-react';
 import API from '../services/api';
 
 export default function Budget() {
@@ -17,10 +17,6 @@ export default function Budget() {
   const [loading, setLoading] = useState(true);
 
   const CATEGORIES = ['food', 'fuel', 'movie', 'medical', 'loan', 'shopping', 'travel', 'utilities', 'other'];
-
-  useEffect(() => {
-    fetchData();
-  }, [refreshTrigger, fetchData]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -65,7 +61,11 @@ export default function Budget() {
     }
   }, []);
 
-  const calculateSpent = (category, period, transactionData = transactions) => {
+  useEffect(() => {
+    fetchData();
+  }, [refreshTrigger, fetchData]);
+
+  const calculateSpent = useCallback((category, period, transactionData = transactions) => {
     const now = new Date();
     let startDate = new Date();
     
@@ -84,16 +84,16 @@ export default function Budget() {
                transactionDate <= now;
       })
       .reduce((sum, t) => sum + t.amount, 0);
-  };
+  }, [transactions]);
 
-  const getBudgetStatus = (budget) => {
+  const getBudgetStatus = useCallback((budget) => {
     const spent = calculateSpent(budget.category, budget.period);
     const percentage = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
     
     if (percentage >= 100) return { status: 'exceeded', color: 'red' };
     if (percentage >= 80) return { status: 'warning', color: 'yellow' };
     return { status: 'good', color: 'green' };
-  };
+  }, [calculateSpent]);
 
   const handleAddBudget = async (e) => {
     e.preventDefault();

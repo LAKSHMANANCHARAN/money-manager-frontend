@@ -27,35 +27,6 @@ export default function Home() {
     fetchData();
   }, [refreshTrigger]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [transactions, filters, accounts]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Fetch all transactions
-      const transactionsResponse = await API.get('/api/transactions');
-      setTransactions(transactionsResponse.data);
-
-      // Fetch accounts for filter
-      const accountsResponse = await API.get('/api/accounts');
-      setAccounts(accountsResponse.data);
-
-      // Fetch category summary
-      const categoryResponse = await API.get('/api/transactions/categories/summary');
-      setCategorySummary(categoryResponse.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      // Show empty data when API fails
-      setTransactions([]);
-      setAccounts([]);
-      setCategorySummary([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const applyFilters = useCallback(() => {
     let filtered = [...transactions];
 
@@ -104,7 +75,36 @@ export default function Home() {
 
     setFilteredTransactions(filtered);
     calculateSummary(filtered);
-  }, [transactions, filters, accounts]);
+  }, [transactions, filters]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Fetch all transactions
+      const transactionsResponse = await API.get('/api/transactions');
+      setTransactions(transactionsResponse.data);
+
+      // Fetch accounts for filter
+      const accountsResponse = await API.get('/api/accounts');
+      setAccounts(accountsResponse.data);
+
+      // Fetch category summary
+      const categoryResponse = await API.get('/api/transactions/categories/summary');
+      setCategorySummary(categoryResponse.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      // Show empty data when API fails
+      setTransactions([]);
+      setAccounts([]);
+      setCategorySummary([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const calculateSummary = (data) => {
     const transactionIncome = data
