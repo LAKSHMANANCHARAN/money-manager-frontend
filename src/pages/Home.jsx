@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../App';
 import { Calendar, Filter, TrendingUp, TrendingDown, DollarSign, Search } from 'lucide-react';
 import API from '../services/api';
@@ -29,7 +29,7 @@ export default function Home() {
 
   useEffect(() => {
     applyFilters();
-  }, [applyFilters]);
+  }, [transactions, filters, accounts]);
 
   const fetchData = async () => {
     setLoading(true);
