@@ -59,7 +59,7 @@ export default function Budget() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [calculateSpent]);
 
   useEffect(() => {
     fetchData();
